@@ -7,8 +7,9 @@ import numpy as np
 
 import gtk.gdk
 import pygame
+from sys import argv
 from pygame.locals import *
-
+from pymouse import PyMouseEvent
 
 def get_moves(position, step):
     moves = {
@@ -43,7 +44,17 @@ def save_data_point(fname, position):
         label_file.write("{},{},{}\n".format(fname, position[0], position[1]))
 
 
-def main():
+class MouseClickCapture(PyMouseEvent):
+    def __init__(self):
+        super(MouseClickCapture, self).__init__()
+
+    def click(self, x, y, button, press):
+        if press:
+            fname = "/home/swolf/local/src/zenos_mouse/data/screenshot_{}.png".format(time.time())
+            get_screenshot(fname)
+            save_data_point(fname, (x, y))
+
+def move_mouse():
     # Set up PyGame
     pygame.init()
     fname = "/home/swolf/local/src/zenos_mouse/data/screenshot_{}.png".format(time.time())
@@ -96,4 +107,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(argv) > 1 and argv[1] == 'learn':
+        print("starting learning capture mode")
+        MouseClickCapture().run()
+        exit()
+    else:
+        move_mouse()
