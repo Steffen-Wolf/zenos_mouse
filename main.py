@@ -20,10 +20,20 @@ def get_moves(position, step):
         "l": position+step*[1,0]
         }
     return moves
-    
-def draw_moves(position, moves, display):
-    for end_pos in moves.values():
-        pygame.draw.line(display, (0,255,0), tuple(position), tuple(end_pos), 2)
+
+def get_max_reachable(step):
+    reachable = {
+        "h": step*np.array([-2,0]),
+        "j": step*np.array([0,2]),
+        "k": step*np.array([0,-2]),
+        "l": step*np.array([2,0])
+        }
+    return reachable
+
+def draw_moves(position, moves, step, display):
+    reachable = get_max_reachable(step)
+    for r in reachable.values():
+        pygame.draw.line(display, (0,255,0), tuple(position), tuple(position+r), 2)
 
 def get_screenshot(fname):
     # Uses Python Image Library
@@ -76,7 +86,9 @@ def move_mouse():
     step = np.array([p//4 for p in pyautogui.size()], dtype=int)
     moves = get_moves(position, step)
 
-    draw_moves(position, moves, display)
+    draw_moves(position, moves, step, display)
+
+    history = []
 
     try:
         draw_current_data_points(display)
@@ -108,18 +120,26 @@ def move_mouse():
                     pygame.display.quit()
                     return
 
-                for c, key in key_to_gamekey.items():
-                    if e.key == key:
-                        position = moves[c]
-                        if c in "hl":
-                            step[0] /= 2
-                        else:
-                            step[1] /= 2
+                if e.key == pygame.K_u:
+                    if history:
+                        position, step = history.pop()
                         moves = get_moves(position, step)
                         display.blit(capture, (0,0))
-                        draw_moves(position, moves, display)
-                
+                        draw_moves(position, moves, step, display)
 
+                for c, key in key_to_gamekey.items():
+                    if e.key == key:
+                        history.append((position.copy(), step.copy()))
+                        position = moves[c]
+                        if c in "hl":
+                            if step[0] > 1:
+                                step[0] /= 2
+                        else:
+                            if step[1] > 1:
+                                step[1] /= 2
+                        moves = get_moves(position, step)
+                        display.blit(capture, (0,0))
+                        draw_moves(position, moves, step, display)
 
 if __name__ == '__main__':
     if len(argv) > 1 and argv[1] == 'learn':
