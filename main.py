@@ -10,6 +10,7 @@ import pygame
 from sys import argv
 from pygame.locals import *
 from pymouse import PyMouseEvent
+from os import remove
 
 def get_moves(position, step):
     moves = {
@@ -50,9 +51,17 @@ class MouseClickCapture(PyMouseEvent):
 
     def click(self, x, y, button, press):
         if press:
-            fname = "/home/swolf/local/src/zenos_mouse/data/screenshot_{}.png".format(time.time())
+            fname = "/home/swolf/local/src/zenos_mouse/data/capture_{}.png".format(time.time())
             get_screenshot(fname)
             save_data_point(fname, (x, y))
+            time.sleep(2000)
+
+def draw_current_data_points(display):
+    with open("/home/swolf/local/src/zenos_mouse/data/labels.txt", "r") as label_file:
+        lines = label_file.readlines()
+        for l in lines:
+            x, y = l.strip().split(",")[1:3]
+            pygame.draw.circle(display, (0, 100, 250), (int(x), int(y)), 4)
 
 def move_mouse():
     # Set up PyGame
@@ -68,6 +77,11 @@ def move_mouse():
     moves = get_moves(position, step)
 
     draw_moves(position, moves, display)
+
+    try:
+        draw_current_data_points(display)
+    except:
+        pass
 
     key_to_gamekey = {"h":pygame.K_h, "j":pygame.K_j, "k":pygame.K_k, "l":pygame.K_l}
 
@@ -90,6 +104,7 @@ def move_mouse():
                     save_data_point(fname, position)
                     return
                 if e.key == pygame.K_q:
+                    remove(fname)
                     pygame.display.quit()
                     return
 
