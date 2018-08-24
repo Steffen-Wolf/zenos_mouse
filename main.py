@@ -122,20 +122,14 @@ def draw_current_data_points(display):
             pygame.draw.circle(display, (0, 100, 250), (int(x), int(y)), 4)
 
 
-def display_screenshot(display):
-    fname = "/home/swolf/local/src/zenos_mouse/data/screenshot_{}.png".format(time.time())
-    get_screenshot(fname)
-    capture = load_shot(fname)
-    display.blit(capture, (0, 0))
-    return fname, capture
-
-
 def move_mouse():
     # Set up PyGame
     pygame.init()
-
+    fname = "/home/swolf/local/src/zenos_mouse/data/screenshot_{}.png".format(time.time())
+    get_screenshot(fname)
     display = pygame.display.set_mode(pyautogui.size(), pygame.FULLSCREEN)
-    fname, capture = display_screenshot(display)
+    capture = load_shot(fname)
+    display.blit(capture, (0,0))
 
     position, step = get_initial_position_step()
     moves = get_moves(position, step)
