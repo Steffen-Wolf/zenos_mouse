@@ -15,8 +15,9 @@ from os import remove
 DISPLAY = True
 
 
-def get_initial_positions()
-    return np.array([p // 2 for p in pyautogui.size()], dtype=int)
+def get_initial_position_step():
+    return np.array([p // 2 for p in pyautogui.size()], dtype=int), \
+           np.array([p//4 for p in pyautogui.size()], dtype=int)
 
 
 def get_moves(position, step):
@@ -37,6 +38,17 @@ def get_max_reachable(step):
         "l": step * np.array([2, 0])
     }
     return reachable
+
+
+def reduce_step(key, step):
+    if key in "hl":
+        if step[0] > 1:
+            step[0] /= 2
+    else:
+        if step[1] > 1:
+            step[1] /= 2
+
+    return step
 
 
 def draw_moves(position, moves, step, display):
@@ -110,11 +122,12 @@ def draw_current_data_points(display):
             pygame.draw.circle(display, (0, 100, 250), (int(x), int(y)), 4)
 
 
-def display_screenshot(display)
+def display_screenshot(display):
     fname = "/home/swolf/local/src/zenos_mouse/data/screenshot_{}.png".format(time.time())
     get_screenshot(fname)
     capture = load_shot(fname)
     display.blit(capture, (0, 0))
+    return fname, capture
 
 
 def move_mouse():
@@ -122,9 +135,9 @@ def move_mouse():
     pygame.init()
 
     display = pygame.display.set_mode(pyautogui.size(), pygame.FULLSCREEN)
-    display_screenshot(display)
+    fname, capture = display_screenshot(display)
 
-    position = get_initial_positions()
+    position, step = get_initial_position_step()
     moves = get_moves(position, step)
     draw_moves(position, moves, step, display)
 
@@ -178,12 +191,7 @@ def move_mouse():
                         position = moves[c]
 
                         # reduce movement speed by two
-                        if c in "hl":
-                            if step[0] > 1:
-                                step[0] /= 2
-                        else:
-                            if step[1] > 1:
-                                step[1] /= 2
+                        step = reduce_step(c, step)
 
                         # update display
                         moves = get_moves(position, step)
